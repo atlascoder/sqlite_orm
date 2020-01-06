@@ -29,12 +29,12 @@ namespace sqlite_orm {
         struct iterator {
 
             template<class L>
-            void operator()(const std::tuple<Args...> &t, const L &l, bool reverse = true) {
+            static void apply(const std::tuple<Args...> &t, const L &l, bool reverse = true) {
                 if(reverse) {
                     l(std::get<N>(t));
-                    iterator<N - 1, Args...>()(t, l, reverse);
+                    iterator<N - 1, Args...>::apply(t, l, reverse);
                 } else {
-                    iterator<N - 1, Args...>()(t, l, reverse);
+                    iterator<N - 1, Args...>::apply(t, l, reverse);
                     l(std::get<N>(t));
                 }
             }
@@ -44,7 +44,7 @@ namespace sqlite_orm {
         struct iterator<0, Args...> {
 
             template<class L>
-            void operator()(const std::tuple<Args...> &t, const L &l, bool /*reverse*/ = true) {
+            static void apply(const std::tuple<Args...> &t, const L &l, bool /*reverse*/ = true) {
                 l(std::get<0>(t));
             }
         };
@@ -53,7 +53,7 @@ namespace sqlite_orm {
         struct iterator<N> {
 
             template<class L>
-            void operator()(const std::tuple<> &, const L &, bool /*reverse*/ = true) {
+            static void apply(const std::tuple<> &, const L &, bool /*reverse*/ = true) {
                 //..
             }
         };
@@ -80,7 +80,7 @@ namespace sqlite_orm {
         template<class L, class... Args>
         void iterate_tuple(const std::tuple<Args...> &t, const L &l) {
             using tuple_type = std::tuple<Args...>;
-            tuple_helper::iterator<std::tuple_size<tuple_type>::value - 1, Args...>()(t, l, false);
+            tuple_helper::iterator<std::tuple_size<tuple_type>::value - 1, Args...>::apply(t, l, false);
         }
 
         template<typename... input_t>
